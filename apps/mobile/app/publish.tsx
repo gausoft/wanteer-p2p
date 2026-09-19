@@ -1,176 +1,137 @@
-import { useState } from 'react';
 import { router } from 'expo-router';
-import { Image } from 'expo-image';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { SENEGAL_NEIGHBORHOODS, DEFAULT_NEIGHBORHOOD_ID } from '@p2p-local/config';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, fontSize, radius, spacing } from '@p2p-local/design-tokens';
-import { requiresPrice, type ListingType } from '@p2p-local/types';
-import { LISTING_TYPE_LABELS, TypeFilter } from '@/components/type-filter';
-import { draftListingSchema } from '@/features/listings/listing.schema';
-import { usePublishListing } from '@/features/listings/use-listings';
-import { useContactProfile } from '@/features/contact/contact-profile';
-import { photoUri, pickPhotoFromLibrary, takePhoto } from '@/lib/photos';
+import type { ListingType } from '@p2p-local/types';
+import { Icon, type IconName } from '@/components/icon';
+import { PublishStepHeader } from '@/components/publish-step-header';
+import { useListingDraft } from '@/stores/listing-draft.store';
+
+type TypeOption = {
+  type: ListingType;
+  label: string;
+  description: string;
+  icon: IconName;
+  backgroundColor: string;
+};
+
+const typeOptions: TypeOption[] = [
+  {
+    type: 'DONATION',
+    label: 'Donner',
+    description: 'Offrir au quartier',
+    icon: 'tag',
+    backgroundColor: '#d9f3e5',
+  },
+  {
+    type: 'BARTER',
+    label: 'Troquer',
+    description: 'Échanger sans argent',
+    icon: 'exchange',
+    backgroundColor: '#f9e0d6',
+  },
+  {
+    type: 'SALE',
+    label: 'Prix coûtant',
+    description: 'Récupérer le prix payé',
+    icon: 'dollar',
+    backgroundColor: '#e8e3ff',
+  },
+  {
+    type: 'REQUEST',
+    label: 'Besoin',
+    description: 'Dire ce que vous cherchez',
+    icon: 'search',
+    backgroundColor: '#eceeed',
+  },
+];
 
 export default function PublishScreen() {
-  const [photoFileName, setPhotoFileName] = useState<string | null>(null);
-  const [type, setType] = useState<ListingType | null>('DONATION');
-  const [neighborhoodId, setNeighborhoodId] = useState(DEFAULT_NEIGHBORHOOD_ID);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
+  const reset = useListingDraft((state) => state.reset);
+  const setType = useListingDraft((state) => state.setType);
 
-  const publish = usePublishListing();
-  const { profile } = useContactProfile();
-
-  async function submit() {
-    if (profile === null) {
-      Alert.alert(
-        'Votre numéro WhatsApp',
-        'Renseignez votre prénom et votre numéro dans l’onglet Profil : ils servent à vous joindre, et ne sont jamais affichés sur vos annonces.',
-      );
-      return;
-    }
-
-    const parsed = draftListingSchema.safeParse({
-      title,
-      description,
-      type,
-      price: type !== null && requiresPrice(type) ? Number(price.replace(/\D/g, '')) : null,
-      neighborhoodId,
-      photoFileName,
-    });
-
-    if (!parsed.success) {
-      Alert.alert('Annonce incomplète', parsed.error.issues[0]?.message ?? 'Vérifiez les champs.');
-      return;
-    }
-
-    await publish.mutateAsync({ draft: parsed.data, author: profile });
-    router.back();
+  function chooseType(type: ListingType): void {
+    reset();
+    setType(type);
+    router.push('/publish-details');
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.form}>
-      <Text style={styles.label}>Photo</Text>
-      <View style={styles.photoRow}>
-        {photoFileName ? (
-          <Image source={{ uri: photoUri(photoFileName) }} style={styles.photo} />
-        ) : null}
-        <Pressable
-          style={styles.secondary}
-          onPress={async () => setPhotoFileName((await takePhoto()) ?? photoFileName)}
-        >
-          <Text style={styles.secondaryLabel}>Prendre une photo</Text>
-        </Pressable>
-        <Pressable
-          style={styles.secondary}
-          onPress={async () => setPhotoFileName((await pickPhotoFromLibrary()) ?? photoFileName)}
-        >
-          <Text style={styles.secondaryLabel}>Choisir dans la galerie</Text>
-        </Pressable>
-      </View>
-
-      <Text style={styles.label}>Type</Text>
-      <TypeFilter value={type} onChange={setType} />
-
-      <Text style={styles.label}>Quartier</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-        {SENEGAL_NEIGHBORHOODS.map((neighborhood) => (
-          <Pressable
-            key={neighborhood.id}
-            onPress={() => setNeighborhoodId(neighborhood.id)}
-            style={[styles.chip, neighborhood.id === neighborhoodId && styles.chipSelected]}
-          >
-            <Text
-              style={[
-                styles.chipLabel,
-                neighborhood.id === neighborhoodId && styles.chipLabelSelected,
-              ]}
-            >
-              {neighborhood.name}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      <Text style={styles.label}>Titre</Text>
-      <TextInput value={title} onChangeText={setTitle} style={styles.input} />
-
-      {type !== null && requiresPrice(type) ? (
-        <>
-          <Text style={styles.label}>Prix coûtant (FCFA)</Text>
-          <TextInput
-            value={price}
-            onChangeText={setPrice}
-            keyboardType="number-pad"
-            style={styles.input}
-          />
-        </>
-      ) : null}
-
-      <Text style={styles.label}>Description</Text>
-      <TextInput
-        value={description}
-        onChangeText={setDescription}
-        multiline
-        style={[styles.input, styles.multiline]}
-      />
-
-      <Pressable style={styles.primary} onPress={submit} disabled={publish.isPending}>
-        <Text style={styles.primaryLabel}>
-          {publish.isPending ? 'Publication…' : `Publier — ${type ? LISTING_TYPE_LABELS[type] : ''}`}
+    <View style={styles.screen}>
+      <PublishStepHeader step={1} onBack={() => router.back()} />
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.eyebrow}>CRÉER UNE ANNONCE</Text>
+        <Text style={styles.title}>Que souhaitez-vous proposer ?</Text>
+        <Text style={styles.intro}>
+          Un choix suffit. Vous pourrez préciser les détails ensuite.
         </Text>
-      </Pressable>
-    </ScrollView>
+        <View style={styles.typeList}>
+          {typeOptions.map((option) => (
+            <Pressable
+              key={option.type}
+              accessibilityRole="button"
+              accessibilityLabel={`${option.label}, ${option.description}`}
+              onPress={() => chooseType(option.type)}
+              style={[styles.typeCard, { backgroundColor: option.backgroundColor }]}
+            >
+              <View style={styles.typeIcon}>
+                <Icon name={option.icon} size={23} color={colors.neutral[800]} />
+              </View>
+              <View style={styles.typeCopy}>
+                <Text style={styles.typeLabel}>{option.label}</Text>
+                <Text style={styles.typeDescription}>{option.description}</Text>
+              </View>
+              <Icon name="arrow-right" size={18} color={colors.neutral[600]} />
+            </Pressable>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  form: { padding: spacing[4], gap: spacing[2], backgroundColor: colors.neutral[0] },
-  label: { fontSize: fontSize.sm, fontWeight: '600', color: colors.neutral[700], marginTop: spacing[3] },
-  photoRow: { gap: spacing[2] },
-  photo: { width: '100%', height: 180, borderRadius: radius.md, backgroundColor: colors.neutral[100] },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: radius.md,
-    padding: spacing[3],
+  screen: { flex: 1, backgroundColor: colors.neutral[50] },
+  content: { paddingHorizontal: spacing[5], paddingTop: spacing[8], paddingBottom: spacing[8] },
+  eyebrow: {
+    color: colors.neutral[400],
+    fontSize: fontSize.xs,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  title: {
+    maxWidth: 340,
+    marginTop: spacing[2],
     color: colors.neutral[900],
+    fontSize: 31,
+    fontWeight: '800',
+    letterSpacing: -1.4,
+    lineHeight: 34,
   },
-  multiline: { minHeight: 96, textAlignVertical: 'top' },
-  chips: { gap: spacing[2], paddingVertical: spacing[2] },
-  chip: {
-    paddingVertical: spacing[2],
+  intro: {
+    maxWidth: 320,
+    marginTop: spacing[3],
+    color: colors.neutral[500],
+    fontSize: fontSize.sm,
+    lineHeight: 20,
+  },
+  typeList: { gap: spacing[2], marginTop: spacing[6] },
+  typeCard: {
+    minHeight: 78,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
     paddingHorizontal: spacing[3],
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-  },
-  chipSelected: { backgroundColor: colors.brand[600], borderColor: colors.brand[600] },
-  chipLabel: { fontSize: fontSize.sm, color: colors.neutral[700] },
-  chipLabelSelected: { color: colors.neutral[0], fontWeight: '600' },
-  secondary: {
-    borderWidth: 1,
-    borderColor: colors.brand[600],
-    borderRadius: radius.md,
-    padding: spacing[3],
-    alignItems: 'center',
-  },
-  secondaryLabel: { color: colors.brand[700], fontWeight: '600' },
-  primary: {
-    marginTop: spacing[6],
-    padding: spacing[4],
     borderRadius: radius.lg,
-    backgroundColor: colors.brand[600],
-    alignItems: 'center',
   },
-  primaryLabel: { color: colors.neutral[0], fontWeight: '700' },
+  typeIcon: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+  },
+  typeCopy: { flex: 1 },
+  typeLabel: { color: colors.neutral[900], fontSize: fontSize.base, fontWeight: '700' },
+  typeDescription: { marginTop: 3, color: colors.neutral[500], fontSize: fontSize.xs },
 });

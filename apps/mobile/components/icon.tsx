@@ -1,6 +1,8 @@
 import { Circle, Path, Svg } from 'react-native-svg';
 
 export type IconName =
+  | 'arrow-left'
+  | 'arrow-right'
   | 'bell'
   | 'campaign'
   | 'chevron-down'
@@ -34,6 +36,20 @@ export function Icon({ name, size = 20, color = '#171717', strokeWidth = 1.8 }: 
   };
 
   switch (name) {
+    case 'arrow-left':
+      return (
+        <Svg viewBox="0 0 24 24" width={size} height={size} {...props}>
+          <Path d="M19 12H5" {...props} />
+          <Path d="m12 19-7-7 7-7" {...props} />
+        </Svg>
+      );
+    case 'arrow-right':
+      return (
+        <Svg viewBox="0 0 24 24" width={size} height={size} {...props}>
+          <Path d="M5 12h14" {...props} />
+          <Path d="m13 6 6 6-6 6" {...props} />
+        </Svg>
+      );
     case 'bell':
       return (
         <Svg viewBox="0 0 24 24" width={size} height={size} {...props}>
