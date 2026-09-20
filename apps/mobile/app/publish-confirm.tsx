@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import fallbackImage from '../assets/listing-books-1.jpg';
 import { findNeighborhood } from '@p2p-local/config';
 import { colors, fontSize, radius, spacing } from '@p2p-local/design-tokens';
 import { requiresPrice } from '@p2p-local/types';
@@ -61,10 +60,15 @@ export default function PublishConfirmScreen() {
     }
 
     setError(null);
-    const author = await save(parsedAuthor.data);
-    await publish.mutateAsync({ draft: parsedDraft.data, author });
-    draft.reset();
-    router.replace('/(tabs)');
+
+    try {
+      const author = await save(parsedAuthor.data);
+      await publish.mutateAsync({ draft: parsedDraft.data, author });
+      draft.reset();
+      router.dismissAll();
+    } catch {
+      setError('La publication est momentanément indisponible. Réessayez.');
+    }
   }
 
   return (
@@ -81,11 +85,18 @@ export default function PublishConfirmScreen() {
         </Text>
 
         <View style={styles.previewCard}>
-          <Image
-            source={draft.photoFileName ? { uri: photoUri(draft.photoFileName) } : fallbackImage}
-            style={styles.previewImage}
-            contentFit="cover"
-          />
+          {draft.photoFileName ? (
+            <Image
+              source={{ uri: photoUri(draft.photoFileName) }}
+              style={styles.previewImage}
+              contentFit="cover"
+            />
+          ) : (
+            <View style={styles.previewPlaceholder}>
+              <Icon name="tag" size={28} color={colors.neutral[400]} />
+              <Text style={styles.previewPlaceholderLabel}>Aucune photo</Text>
+            </View>
+          )}
           <View style={styles.previewBody}>
             <Text style={styles.badge}>{LISTING_TYPE_LABELS[type].toUpperCase()}</Text>
             <Text style={styles.previewTitle}>{draft.title || 'Votre annonce'}</Text>
@@ -182,6 +193,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral[0],
   },
   previewImage: { width: '100%', height: 168 },
+  previewPlaceholder: {
+    height: 168,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.neutral[100],
+  },
+  previewPlaceholderLabel: { color: colors.neutral[500], fontSize: fontSize.xs },
   previewBody: { padding: spacing[3] },
   badge: {
     alignSelf: 'flex-start',

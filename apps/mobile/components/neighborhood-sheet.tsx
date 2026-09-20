@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { SENEGAL_NEIGHBORHOODS } from '@p2p-local/config';
 import { colors, fontSize, radius, spacing } from '@p2p-local/design-tokens';
 
-const neighborhoods = ['Médina', 'Plateau', 'Parcelles Assainies', 'Pikine', 'Sacré-Cœur', 'Yoff'];
+const neighborhoods = SENEGAL_NEIGHBORHOODS.map((neighborhood) => neighborhood.name);
 
 type NeighborhoodSheetProps = {
   visible: boolean;
@@ -37,7 +38,7 @@ export function NeighborhoodSheet({
                 Il sert à calculer les distances. Votre adresse exacte reste privée.
               </Text>
             </View>
-            <Pressable onPress={onClose} accessibilityLabel="Fermer">
+            <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onClose}>
               <Text style={styles.close}>×</Text>
             </Pressable>
           </View>
@@ -49,17 +50,21 @@ export function NeighborhoodSheet({
             value={query}
             onChangeText={setQuery}
           />
-          <Text style={styles.sheetSection}>DAKAR</Text>
-          {visibleNeighborhoods.map((neighborhood) => (
-            <Pressable
-              key={neighborhood}
-              style={styles.neighborhoodOption}
-              onPress={() => onSelect(neighborhood)}
-            >
-              <View style={[styles.radio, selected === neighborhood && styles.radioSelected]} />
-              <Text style={styles.optionLabel}>{neighborhood}</Text>
-            </Pressable>
-          ))}
+          <Text style={styles.sheetSection}>LOCALITÉS</Text>
+          <ScrollView style={styles.neighborhoodList}>
+            {visibleNeighborhoods.map((neighborhood) => (
+              <Pressable
+                key={neighborhood}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: selected === neighborhood }}
+                style={styles.neighborhoodOption}
+                onPress={() => onSelect(neighborhood)}
+              >
+                <View style={[styles.radio, selected === neighborhood && styles.radioSelected]} />
+                <Text style={styles.optionLabel}>{neighborhood}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
           <Pressable style={styles.submitButton} onPress={onClose}>
             <Text style={styles.submitLabel}>Enregistrer</Text>
           </Pressable>
@@ -113,6 +118,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     fontWeight: '700',
   },
+  neighborhoodList: { maxHeight: 280 },
   neighborhoodOption: {
     minHeight: 42,
     flexDirection: 'row',

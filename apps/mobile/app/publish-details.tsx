@@ -57,8 +57,12 @@ export default function PublishDetailsScreen() {
   }
 
   async function selectPhoto(select: () => Promise<string | null>): Promise<void> {
-    const fileName = await select();
-    if (fileName !== null) draft.update({ photoFileName: fileName });
+    try {
+      const fileName = await select();
+      if (fileName !== null) draft.update({ photoFileName: fileName });
+    } catch {
+      setError('Impossible d’ajouter cette photo. Réessayez.');
+    }
   }
 
   return (

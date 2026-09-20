@@ -16,7 +16,7 @@ export function PublishStepHeader({ step, onBack }: PublishStepHeaderProps) {
       <Pressable accessibilityLabel="Retour" onPress={onBack} style={styles.backButton}>
         <Icon name="arrow-left" size={22} color={colors.neutral[700]} />
       </Pressable>
-      <View accessibilityLabel={`Étape ${step} sur 3`} style={styles.progress}>
+      <View accessible accessibilityLabel={`Étape ${step} sur 3`} style={styles.progress}>
         <Text style={styles.step}>
           {step} <Text style={styles.total}>/ 3</Text>
         </Text>
