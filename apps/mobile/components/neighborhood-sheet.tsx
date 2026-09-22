@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { SENEGAL_NEIGHBORHOODS } from '@p2p-local/config';
 import { colors, fontSize, radius, spacing } from '@p2p-local/design-tokens';
-
-const neighborhoods = ['Médina', 'Plateau', 'Parcelles Assainies', 'Pikine', 'Sacré-Cœur', 'Yoff'];
 
 type NeighborhoodSheetProps = {
   visible: boolean;
@@ -20,8 +19,8 @@ export function NeighborhoodSheet({
   onSelect,
 }: NeighborhoodSheetProps) {
   const [query, setQuery] = useState('');
-  const visibleNeighborhoods = neighborhoods.filter((neighborhood) =>
-    neighborhood.toLocaleLowerCase('fr').includes(query.trim().toLocaleLowerCase('fr')),
+  const visibleNeighborhoods = SENEGAL_NEIGHBORHOODS.filter((neighborhood) =>
+    neighborhood.name.toLocaleLowerCase('fr').includes(query.trim().toLocaleLowerCase('fr')),
   );
 
   return (
@@ -49,15 +48,15 @@ export function NeighborhoodSheet({
             value={query}
             onChangeText={setQuery}
           />
-          <Text style={styles.sheetSection}>DAKAR</Text>
+          <Text style={styles.sheetSection}>SÉNÉGAL</Text>
           {visibleNeighborhoods.map((neighborhood) => (
             <Pressable
-              key={neighborhood}
+              key={neighborhood.id}
               style={styles.neighborhoodOption}
-              onPress={() => onSelect(neighborhood)}
+              onPress={() => onSelect(neighborhood.id)}
             >
-              <View style={[styles.radio, selected === neighborhood && styles.radioSelected]} />
-              <Text style={styles.optionLabel}>{neighborhood}</Text>
+              <View style={[styles.radio, selected === neighborhood.id && styles.radioSelected]} />
+              <Text style={styles.optionLabel}>{neighborhood.name}</Text>
             </Pressable>
           ))}
           <Pressable style={styles.submitButton} onPress={onClose}>

@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { router, Tabs } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ComponentProps } from 'react';
 import { colors } from '@p2p-local/design-tokens';
@@ -71,6 +71,7 @@ function CustomTabBar({ state, navigation, insets }: TabBarProps) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Publier une annonce"
+        onPress={() => router.push('/publish')}
         style={styles.publishButton}
       >
         <Icon name="plus" size={20} color={colors.neutral[0]} strokeWidth={2.2} />

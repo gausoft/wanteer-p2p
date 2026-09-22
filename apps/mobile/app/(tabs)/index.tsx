@@ -4,11 +4,9 @@ import listingBooks1 from '../../assets/listing-books-1.jpg';
 import listingBooks2 from '../../assets/listing-books-2.jpg';
 import listingStudent from '../../assets/listing-student.jpg';
 import listingStudents from '../../assets/listing-students.jpg';
-import wantereMark from '../../assets/wantere-mark.png';
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -17,6 +15,7 @@ import {
   type ImageSourcePropType,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { neighborhoodName } from '@p2p-local/config';
 import { colors, radius, spacing } from '@p2p-local/design-tokens';
 import type { ListingType } from '@p2p-local/types';
 import { Icon, type IconName } from '@/components/icon';
@@ -163,22 +162,29 @@ const prototypeListings: HomeListing[] = [
 export default function HomeScreen() {
   const router = useRouter();
   const { top, bottom } = useSafeAreaInsets();
-  const { query, setQuery, type: selectedType, setType } = useSearchFilters();
-  const [neighborhood, setNeighborhood] = useState('Médina');
+  const {
+    query,
+    setQuery,
+    type: selectedType,
+    setType,
+    neighborhoodId,
+    setNeighborhood,
+  } = useSearchFilters();
   const [isNeighborhoodOpen, setNeighborhoodOpen] = useState(false);
 
   const listings = useListings({
     query,
     type: selectedType,
-    neighborhoodId: neighborhood,
+    neighborhoodId,
   });
   const prototypeMatches = prototypeListings.filter(({ listing }) => {
+    const matchesNeighborhood = listing.neighborhoodId === neighborhoodId;
     const matchesType =
       selectedType === null || selectedType === undefined || listing.type === selectedType;
     const matchesQuery =
       query.length < 2 ||
       listing.title.toLocaleLowerCase('fr').includes(query.toLocaleLowerCase('fr'));
-    return matchesType && matchesQuery;
+    return matchesNeighborhood && matchesType && matchesQuery;
   });
   const displayListings: HomeListing[] = listings.data?.length
     ? listings.data.map((listing) => ({ listing }))
@@ -190,8 +196,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: top + spacing[3] }]}>
         <View style={styles.brandLockup}>
-          <Image source={wantereMark} style={styles.mark} />
-          <Text style={styles.brandName}>wantere</Text>
+          <Text style={styles.brandName}>P2P Local</Text>
         </View>
         <Pressable
           accessibilityLabel="Notifications"
@@ -212,7 +217,9 @@ export default function HomeScreen() {
           <View>
             <Pressable style={styles.neighborhoodButton} onPress={() => setNeighborhoodOpen(true)}>
               <Icon name="pin" size={15} color={colors.neutral[600]} />
-              <Text style={styles.neighborhoodLabel}>Dakar · {neighborhood}</Text>
+              <Text style={styles.neighborhoodLabel}>
+                Dakar · {neighborhoodName(neighborhoodId)}
+              </Text>
               <Icon name="chevron-down" size={18} color={colors.neutral[500]} />
             </Pressable>
 
@@ -262,7 +269,10 @@ export default function HomeScreen() {
                 <Text style={styles.title}>Près de chez vous</Text>
                 <Text style={styles.subtitle}>Annonces récentes aux alentours</Text>
               </View>
-              <Pressable style={styles.filterButton} onPress={() => router.push('/(tabs)/echanges')}>
+              <Pressable
+                style={styles.filterButton}
+                onPress={() => router.push('/(tabs)/echanges')}
+              >
                 <Icon name="filter" size={13} color={colors.primary[500]} />
                 <Text style={styles.filterLabel}>Filtrer</Text>
               </Pressable>
@@ -290,7 +300,7 @@ export default function HomeScreen() {
 
       <NeighborhoodSheet
         visible={isNeighborhoodOpen}
-        selected={neighborhood}
+        selected={neighborhoodId}
         bottomInset={bottom}
         onClose={() => setNeighborhoodOpen(false)}
         onSelect={setNeighborhood}
@@ -313,7 +323,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#e7e6e2',
   },
   brandLockup: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  mark: { width: 18, height: 24, resizeMode: 'contain' },
   brandName: { color: colors.primary[500], fontSize: 24, fontWeight: '800', letterSpacing: -1 },
   notificationsButton: {
     position: 'absolute',
