@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SENEGAL_NEIGHBORHOODS } from '@p2p-local/config';
 import { colors, fontSize, radius, spacing } from '@p2p-local/design-tokens';
 
@@ -48,17 +48,26 @@ export function NeighborhoodSheet({
             value={query}
             onChangeText={setQuery}
           />
-          <Text style={styles.sheetSection}>SÉNÉGAL</Text>
-          {visibleNeighborhoods.map((neighborhood) => (
-            <Pressable
-              key={neighborhood.id}
-              style={styles.neighborhoodOption}
-              onPress={() => onSelect(neighborhood.id)}
-            >
-              <View style={[styles.radio, selected === neighborhood.id && styles.radioSelected]} />
-              <Text style={styles.optionLabel}>{neighborhood.name}</Text>
-            </Pressable>
-          ))}
+          <ScrollView
+            style={styles.neighborhoodList}
+            contentContainerStyle={styles.neighborhoodListContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.sheetSection}>SÉNÉGAL</Text>
+            {visibleNeighborhoods.map((neighborhood) => (
+              <Pressable
+                key={neighborhood.id}
+                style={styles.neighborhoodOption}
+                onPress={() => onSelect(neighborhood.id)}
+              >
+                <View
+                  style={[styles.radio, selected === neighborhood.id && styles.radioSelected]}
+                />
+                <Text style={styles.optionLabel}>{neighborhood.name}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
           <Pressable style={styles.submitButton} onPress={onClose}>
             <Text style={styles.submitLabel}>Enregistrer</Text>
           </Pressable>
@@ -72,6 +81,7 @@ const styles = StyleSheet.create({
   modalRoot: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(20, 24, 22, 0.35)' },
   sheet: {
+    maxHeight: '88%',
     paddingHorizontal: spacing[4],
     paddingTop: spacing[2],
     borderTopLeftRadius: radius.xl,
@@ -105,6 +115,8 @@ const styles = StyleSheet.create({
     color: colors.neutral[900],
     fontSize: fontSize.sm,
   },
+  neighborhoodList: { flexShrink: 1 },
+  neighborhoodListContent: { paddingBottom: spacing[2] },
   sheetSection: {
     marginTop: spacing[4],
     marginBottom: spacing[1],
