@@ -58,7 +58,7 @@ const prototypeListings: HomeListing[] = [
       ownerKey: 'prototype',
       source: 'device',
       description: '',
-      neighborhoodId: 'parcelles-unite-15',
+      neighborhoodId: 'parcelles-assainies',
       photoFileName: null,
       authorFirstName: 'Awa',
       authorPhone: '+221000000000',

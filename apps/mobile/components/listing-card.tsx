@@ -48,7 +48,7 @@ export function ListingCard({ listing, variant = 'row', presentation }: ListingC
           {imageSource ? (
             <Image source={imageSource} style={styles.image} />
           ) : (
-            <Text style={styles.placeholder}>W</Text>
+            <Icon name="tag" size={28} color={colors.neutral[300]} />
           )}
           {isHome ? (
             <>
@@ -135,7 +135,6 @@ const styles = StyleSheet.create({
   },
   homeThumbnail: { width: '100%', height: 172, borderRadius: 0, backgroundColor: '#dfe7dc' },
   image: { width: '100%', height: '100%', resizeMode: 'cover' },
-  placeholder: { fontSize: 32, fontWeight: '700', color: colors.primary[300] },
   body: { flex: 1, gap: spacing[1] },
   homeBody: { paddingTop: 12, paddingHorizontal: 14, paddingBottom: 14, gap: 0 },
   heading: {
